@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Sets up udev rules and a group for android-tools.
+
+get_newest_rules(){
+	sudo wget -O /etc/udev/rules.d/51-android.rules https://raw.githubusercontent.com/M0Rf30/android-udev-rules/main/51-android.rules
+	sudo chmod a+r /etc/udev/rules.d/51-android.rules
+}
+
+echo -e 'Setting up udev rules for android-tools.\n'
+
+if [ -f /etc/udev/rules.d/51-android.rules ]; then
+	echo -e 'The udev rules are already set up. Updating..\n'
+	get_newest_rules
+else
+	get_newest_rules
+	sudo groupadd adbusers
+	sudo usermod -aG adbusers $USER
+	sudo systemctl restart systemd-udevd.service
+fi

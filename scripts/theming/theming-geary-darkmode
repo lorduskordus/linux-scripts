@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Styles the background and text of emails, so it reacts to system theme.
+
+# Setup variables
+BACKGROUND_COLOR="#353535"
+TEXT_COLOR="#eeeeec"
+
+cat << EOF > $HOME/.var/app/org.gnome.Geary/config/geary/user-style.css
+@media (prefers-color-scheme: dark) {
+  :root, *:not(a) {
+    color: $TEXT_COLOR !important;
+    background-color: $BACKGROUND_COLOR !important;
+  }
+}
+EOF

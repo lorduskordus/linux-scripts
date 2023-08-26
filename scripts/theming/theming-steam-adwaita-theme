@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Downloads Adwaita-for-Steam theme from GitHub & uses custom accent if it's set.
+
+# Setup variables
+WORKDIR="/tmp/Adwaita-for-Steam"
+# Inverted colors, is intended. (Looks better)
+ACCENT_COLOR=$(awk '/@define-color accent_bg_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+ACCENT_BG_COLOR=$(awk '/@define-color accent_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+
+# Color codes
+TITLE_CLR='\e[1m'
+RESET='\e[0m'
+
+echo -e "${TITLE_CLR}Installing Adwaita-for-Steam with a custom accent..${RESET}\n"
+
+# Cleanup WORKDIR just in case.
+rm -rf "$WORKDIR"
+
+# Clone the theme.
+git clone "https://github.com/tkashkin/Adwaita-for-Steam.git" "$WORKDIR"
+
+# Set custom accent color if it's set in gtk.css.
+if [ -n "$ACCENT_COLOR" ] && [ -n "$ACCENT_BG_COLOR" ]; then
+cat << EOF > "$WORKDIR/custom/custom.css"
+:root
+{
+    --accent: ${ACCENT_COLOR};
+    --accent_bg: ${ACCENT_BG_COLOR};
+    --accent_disabled: ${ACCENT_COLOR}80;
+	--accent_hover_bg: ${ACCENT_BG_COLOR}12;
+	--accent_active_bg: ${ACCENT_BG_COLOR}29;
+	--focusring: ${ACCENT_COLOR}80
+}
+EOF
+fi
+
+# Install.
+cd "$WORKDIR"
+./install.py --extra windowcontrols/right-all --custom-css
+
+# Cleanup.
+rm -rf "$WORKDIR"

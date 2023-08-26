@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Removes the thunderbird-gnome-theme.
+
+# All thunderbird installation paths.
+thunderbirdInstallationPaths=(
+    ~/.thunderbird
+    ~/.var/app/org.mozilla.Thunderbird/.thunderbird
+    ~/snap/thunderbird/common/.thunderbird
+)
+
+foldersFoundCount=0
+
+# For every installation path..
+for folder in "${thunderbirdInstallationPaths[@]}"; do
+    # ..if the path exists..
+    if [ -d "$folder" ]; then
+		echo -e "Thunderbird installation folder found in:\n$folder"
+		foldersFoundCount+=1
+
+		# Delete old theming.
+		find "$folder" -mindepth 2 -maxdepth 2 -type l -name 'user.js' -delete
+		find "$folder" -mindepth 2 -maxdepth 2 -type d -name 'chrome' -exec rm -rf {} +
+        echo "Theme removed."
+    fi
+done
+
+# If no installation path exists.
+if [ $foldersFoundCount = 0 ];then
+    echo No thunderbird folder found.
+fi

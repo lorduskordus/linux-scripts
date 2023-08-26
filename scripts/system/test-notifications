@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Script for testing notifications.
+# Sends 1 notification every 10 seconds.
+
+while [ True ]; do
+
+	(( i++ ))
+
+	clear
+	
+	echo -e "Script for testing notifications. Sends 1 notification every 10 seconds.\n"
+	echo "Sending [${i}.] notification."
+
+	notify-send -i org.gnome.Settings-notifications-symbolic "Notification test #${i}" "This is ${i}. notification for testing purposes."
+
+	echo "End this chaos with --> [CTRL+C] or just click the close button."
+
+	sleep 10
+
+done

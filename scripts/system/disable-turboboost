@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Disables Intel Turbo boost automatically on every boot to
+# save battery and lower overall temperature.
+
+cat << EOF > /etc/systemd/system/disable-intel-turboboost.service
+[Unit]
+Description=Disable Intel Turbo Boost using pstate driver 
+
+[Service]
+ExecStart=/bin/sh -c "/usr/bin/echo 1 > /sys/devices/system/cpu/intel_pstate/no_turbo"
+ExecStop=/bin/sh -c "/usr/bin/echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable disable-intel-turboboost --now

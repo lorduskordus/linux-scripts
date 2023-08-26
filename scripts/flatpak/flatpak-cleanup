@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Removes unused application data and unused dependencies.
+# And old NVIDIA runtimes until the bug is fixed.
+
+# Color codes
+NV_CURR_CLR='\e[32m'
+TITLE_CLR='\e[1m'
+RESET='\e[0m'
+
+echo -e "${TITLE_CLR}▪ REMOVE DATA${RESET}"
+flatpak remove --delete-data
+echo "Done."
+
+echo -e "\n${TITLE_CLR}▪ REMOVE RUNTIMES${RESET}"
+flatpak remove --unused
+
+echo -e "\n${TITLE_CLR}▪ REMOVE OLD NVIDIA RUNTIMES${RESET}"
+NVIDIA_CURRENT=$(nvidia-smi --query | grep "Driver Version" | awk '{print $4}' | tr '.' '-')
+#NVIDIA_CURRENT=$(nvidia-smi --query | awk '/Driver Version/ {gsub(/\./, "-", $4); print $4}')
+NVIDIA_OLD=$(flatpak --columns=application list | grep 'org.freedesktop.Platform.*.nvidia-' | grep -v $NVIDIA_CURRENT)
+if [ -n "$NVIDIA_OLD" ]; then
+	echo -e "Current NVIDIA runtime:${NV_CURR_CLR} $NVIDIA_CURRENT ${RESET}"
+	flatpak remove $NVIDIA_OLD
+else
+	echo "All good."
+fi
