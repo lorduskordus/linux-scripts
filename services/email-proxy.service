@@ -1,0 +1,10 @@
+[Unit]
+Description=Email OAuth2 Proxy service
+
+[Service]
+Type=simple
+Restart=on-failure
+ExecStart=/usr/bin/python "%h/.config/email-oauth2-proxy/emailproxy.py" --local-server-auth --no-gui
+
+[Install]
+WantedBy=default.target

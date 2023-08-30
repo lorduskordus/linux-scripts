@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+NoDisplay=True
+Terminal=false
+StartupNotify=true
+Icon=org.gnome.Settings-network-symbolic
+Exec=nm-connection-editor
+Categories=Network;System
+
+Name=Network Manager
+Comment=Network configuration
+
+# CZ
+Name[cs]=Manažer sítě
+Comment[cs]=Konfigurace sítě
