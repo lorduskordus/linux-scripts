@@ -24,7 +24,7 @@ if ! grep -qF "/*Customized, issue 1819*/" "$EXTENSION_PATH/stylesheet.css"; the
 /*Customized, issue 1819*/
 #dashtopanelScrollview .app-well-app:hover .dtp-container,
 #dashtopanelScrollview .app-well-app:focus .dtp-container,
-#dashtopanelScrollview .app-well-app .dtp-container > * {
+#dashtopanelScrollview .app-well-app .dtp-container > StWidget {
   border-radius: 10px;
 }
 #dashtopanelScrollview .dash-item-container > StWidget { 
