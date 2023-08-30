@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# Sets rounded corners for a horizontal Dash-to-Panel layout.
+# Not a solution, a hack for https://github.com/home-sweet-gnome/dash-to-panel/issues/1819
+# Possible, thanks to https://github.com/home-sweet-gnome/dash-to-panel/issues/1721
+
+EXTENSION_PATH="$HOME/.local/share/gnome-shell/extensions/dash-to-panel@jderose9.github.com/"
+
+if [ ! -d "$EXTENSION_PATH" ]; then
+    echo "Dash-to-Panel is not installed."
+    exit 1
+fi
+
+# Alter panel.js
+sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(Me.settings, this.monitor.index) + 12;|" "$EXTENSION_PATH/panel.js"
+
+# Alter stylesheet.css
+
+# Check if we set the custom style before
+if ! grep -qF "/*Customized, issue 1819*/" "$EXTENSION_PATH/stylesheet.css"; then
+
+    cat << EOF >> "$EXTENSION_PATH/stylesheet.css"
+
+/*Customized, issue 1819*/
+#dashtopanelScrollview .app-well-app:hover .dtp-container,
+#dashtopanelScrollview .app-well-app:focus .dtp-container,
+#dashtopanelScrollview .app-well-app .dtp-container > * {
+  border-radius: 10px;
+}
+#dashtopanelScrollview .dash-item-container > StWidget { 
+  border-top: 6px;
+  border-bottom: 6px;
+}
+EOF
+
+fi
+
+echo "Done. You'll need to log-out, log-in to see the changes for some reason."
