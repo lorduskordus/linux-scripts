@@ -12,7 +12,7 @@ if [ ! -d "$EXTENSION_PATH" ]; then
 fi
 
 # Alter panel.js
-sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(Me.settings, this.monitor.index) + 12;|" "$EXTENSION_PATH/panel.js"
+sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(Me.settings, this.monitor.index) + 6;|" "$EXTENSION_PATH/panel.js"
 
 # Alter stylesheet.css
 
@@ -28,8 +28,8 @@ if ! grep -qF "/*Customized, issue 1819*/" "$EXTENSION_PATH/stylesheet.css"; the
   border-radius: 10px;
 }
 #dashtopanelScrollview .dash-item-container > StWidget { 
-  border-top: 6px;
-  border-bottom: 6px;
+  border-top: 3px;
+  border-bottom: 3px;
 }
 EOF
 
