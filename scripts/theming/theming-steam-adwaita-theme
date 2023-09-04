@@ -28,9 +28,9 @@ cat << EOF > "$WORKDIR/custom/custom.css"
     --accent: ${ACCENT_COLOR};
     --accent_bg: ${ACCENT_BG_COLOR};
     --accent_disabled: ${ACCENT_COLOR}80;
-	--accent_hover_bg: ${ACCENT_BG_COLOR}12;
-	--accent_active_bg: ${ACCENT_BG_COLOR}29;
-	--focusring: ${ACCENT_COLOR}80
+    --accent_hover_bg: ${ACCENT_BG_COLOR}12;
+    --accent_active_bg: ${ACCENT_BG_COLOR}29;
+    --focusring: ${ACCENT_COLOR}80;
 }
 EOF
 fi
