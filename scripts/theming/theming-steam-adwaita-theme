@@ -37,7 +37,7 @@ fi
 
 # Install.
 cd "$WORKDIR"
-./install.py --extra windowcontrols/right-all --custom-css
+./install.py --custom-css --extra windowcontrols/right-all --extra library/sidebar_hover
 
 # Cleanup.
 rm -rf "$WORKDIR"
