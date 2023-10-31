@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Clones gnome-shell from GitLab & compiles the theme with a custom accent.
+
+# Setup variables
+THEME_NAME="gnome-shell-custom"
+THEME_PATH="$HOME/.local/share/themes/$THEME_NAME"
+ACCENT_COLOR=$(awk '/@define-color accent_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+SHELL_VERSION="$(gnome-shell --version | awk '{print $3}')"
+WORKDIR="/tmp/gnome-shell"
+
+# Color codes
+TITLE_CLR='\e[1m'
+RESET='\e[0m'
+
+echo -e "${TITLE_CLR}Creating a gnome-shell theme with a custom accent..${RESET}\n"
+
+# Do we have accent color ?
+if [ -z "$ACCENT_COLOR" ]; then
+	echo "Accent color in '$HOME/.config/gtk-4.0/gtk.css' is missing. Set a custom accent color first."
+	exit 1
+fi
+
+# Do we have sassc ?
+if ! type sassc &> /dev/null; then
+	echo "Missing 'sassc'. Install it using your package manager."
+	exit 1
+fi
+
+# Cleanup WORKDIR just in case.
+rm -rf "$WORKDIR"
+
+# Clone gnome-shell repo to '/tmp'.
+git clone --branch $SHELL_VERSION "https://gitlab.gnome.org/GNOME/gnome-shell.git" "$WORKDIR" &> /dev/null
+if [ $? -eq 128 ]; then
+	while [ True ]; do
+		echo -e " ─ Version $SHELL_VERSION doesn't exist."
+		read -p "     └─ Set a custom version: " SHELL_VERSION
+		git clone --branch $SHELL_VERSION "https://gitlab.gnome.org/GNOME/gnome-shell.git" "$WORKDIR" &> /dev/null
+		if [ $? -eq 0 ]; then
+			break
+		fi
+	done
+fi
+
+# Set a custom accent color.
+sed -i "s|\$blue_3.*|\$blue_3: $ACCENT_COLOR;|" "$WORKDIR/data/theme/gnome-shell-sass/_palette.scss"
+
+# Compile the theme.
+sassc -a "$WORKDIR/data/theme/gnome-shell.scss" "$WORKDIR/data/theme/gnome-shell.css"
+
+# Remove previously created theme and copy the new one.
+rm -rf "$THEME_PATH"
+mkdir -p "$THEME_PATH/gnome-shell"
+cp "$WORKDIR/data/theme/gnome-shell.css" "$THEME_PATH/gnome-shell"
+
+# Cleanup.
+rm -rf "$WORKDIR"
+
+echo -e "\nDone. Set the user theme to '$THEME_NAME' in gnome-tweaks."
