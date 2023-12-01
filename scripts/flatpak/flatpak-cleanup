@@ -1,27 +1,77 @@
 #!/bin/bash
 
-# Removes unused application data and unused dependencies.
-# And old NVIDIA runtimes until the bug is fixed.
+# Removes uninstalled Flatpak app's data,
+# unused runtimes & old NVIDIA runtimes.
 
 # Color codes
-NV_CURR_CLR='\e[32m'
+ACCENT_CLR='\e[32m'
 TITLE_CLR='\e[1m'
 RESET='\e[0m'
 
-echo -e "${TITLE_CLR}▪ REMOVE DATA${RESET}"
-flatpak remove --delete-data
-echo "Done."
+# Remove user data.
+remove_data(){
+    echo -e "${TITLE_CLR}▪ REMOVE DATA${RESET}"
+    flatpak remove --delete-data
+    echo "Done."
+}
 
-echo -e "\n${TITLE_CLR}▪ REMOVE RUNTIMES${RESET}"
-flatpak remove --unused
+# Remove runtimes.
+remove_runtimes(){
+    echo -e "\n${TITLE_CLR}▪ REMOVE RUNTIMES${RESET}"
 
-echo -e "\n${TITLE_CLR}▪ REMOVE OLD NVIDIA RUNTIMES${RESET}"
-NVIDIA_CURRENT=$(nvidia-smi --query | grep "Driver Version" | awk '{print $4}' | tr '.' '-')
-#NVIDIA_CURRENT=$(nvidia-smi --query | awk '/Driver Version/ {gsub(/\./, "-", $4); print $4}')
-NVIDIA_OLD=$(flatpak --columns=application list | grep 'org.freedesktop.Platform.*.nvidia-' | grep -v $NVIDIA_CURRENT)
-if [ -n "$NVIDIA_OLD" ]; then
-	echo -e "Current NVIDIA runtime:${NV_CURR_CLR} $NVIDIA_CURRENT ${RESET}"
-	flatpak remove $NVIDIA_OLD
-else
-	echo "All good."
-fi
+    PINNED=$(flatpak --system pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
+    USER_PINNED=$(flatpak --user pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
+
+    echo -e "${TITLE_CLR}Pinned (user):${RESET}"
+    if [ -n "${USER_PINNED}" ]; then
+        echo "Removing user pins.."
+        if flatpak --user pin --remove ${USER_PINNED} 2> /dev/null; then
+            echo "Done."
+        else
+            echo "Error."
+            return 1
+        fi
+    else
+        echo "No user pins."
+    fi
+
+    echo -e "${TITLE_CLR}Unused (user):${RESET}"
+    flatpak --user remove --unused
+
+    echo -e "${TITLE_CLR}Pinned (system):${RESET}"
+    if [ -n "${PINNED}" ]; then
+        echo "Removing system pins.."
+        if pkexec flatpak --system pin --remove ${PINNED} 2> /dev/null; then
+            echo "Done."
+        else
+            echo "Error: Removing system pins requires higher privileges."
+            return 1
+        fi
+    else
+        echo "No system pins."
+    fi
+
+    # -- !! Was problematic before !! -- #
+    # pkexec
+    echo -e "${TITLE_CLR}Unused (system):${RESET}"
+    flatpak --system remove --unused
+}
+
+# Remove problematic NVIDIA runtimes.
+remove_nvidia(){
+    if nvidia-smi &> /dev/null; then
+        echo -e "\n${TITLE_CLR}▪ REMOVE OLD NVIDIA RUNTIMES${RESET}"
+        NVIDIA_CURRENT=$(nvidia-smi --query | grep "Driver Version" | awk '{print $4}' | tr '.' '-')
+        NVIDIA_OLD=$(flatpak --columns=application list | grep 'org.freedesktop.Platform.*.nvidia-' | grep -v ${NVIDIA_CURRENT})
+        if [ -n "${NVIDIA_OLD}" ]; then
+            echo -e "Current NVIDIA runtime: ${ACCENT_CLR}${NVIDIA_CURRENT}${RESET}"
+            flatpak remove ${NVIDIA_OLD}
+        else
+            echo "All good."
+        fi
+    fi
+}
+
+remove_data
+remove_runtimes
+remove_nvidia
