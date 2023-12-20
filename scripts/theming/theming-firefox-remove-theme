@@ -2,9 +2,6 @@
 
 # Removes the firefox-gnome-theme.
 
-#find $HOME/.var/app/org.mozilla.firefox/.mozilla/firefox/ -mindepth 2 -maxdepth 2 -type l -name 'user.js' -delete
-#find $HOME/.var/app/org.mozilla.firefox/.mozilla/firefox/ -mindepth 2 -maxdepth 2 -type d -name 'chrome' -exec rm -rf {} +
-
 # All firefox installation paths.
 firefoxInstallationPaths=(
     $HOME/.mozilla/firefox
