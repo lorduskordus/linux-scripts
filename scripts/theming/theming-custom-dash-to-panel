@@ -16,7 +16,7 @@ if [ ! -d "$EXTENSION_PATH" ]; then
 fi
 
 # Alter panel.js
-sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(Me.settings, this.monitor.index) + $ADD_PANEL_HEIGHT;|" "$EXTENSION_PATH/panel.js"
+sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(SETTINGS, this.monitor.index) + $ADD_PANEL_HEIGHT;|" "$EXTENSION_PATH/panel.js"
 
 # Prepare stylesheet.css addition
 ADD_STYLESHEET=\
