@@ -7,6 +7,7 @@
 # Local installation is preferred, but system-wide will work too if the script runs with sudo.
 # Detects GNOME shell version and acts accordingly. (Extension was rewritten for GNOME 45+)
 # Detects and warns immutable distro users trying to install system-wide.
+# Detects Zorin OS and acts accordingly. (They rename some values)
 # You can alter the 'SETUP VARIABLES' as you like, you shouldn't touch the rest.
 
 # ------------------- SETUP VARIABLES --------------------------------------------------#
@@ -23,7 +24,16 @@ RESET_CLR='\e[0m'
 
 echo -e "${BOLD_CLR}Setting up custom Dash-to-Panel${RESET_CLR}"
 
-EXTENSION="dash-to-panel@jderose9.github.com"
+# Check if OS matches Zorin..
+if cat /etc/os-release | grep -wq 'Zorin OS'; then
+	#.. it does.
+	EXTENSION="zorin-taskbar@zorinos.com"
+	echo -e "  ▪ Zorin OS ${SUCCESS_CLR}detected${RESET_CLR}."
+else
+	#.. it does NOT.
+	EXTENSION="dash-to-panel@jderose9.github.com"
+fi
+
 EXTENSION_PATH_LOCAL="${HOME}/.local/share/gnome-shell/extensions/${EXTENSION}"
 EXTENSION_PATH_SYSTEM="/usr/share/gnome-shell/extensions/${EXTENSION}"
 
@@ -77,14 +87,17 @@ fi
 sed -i "s|const panelSize.*|const panelSize = PanelSettings.getPanelSize(${SETTINGS_VAR}, this.monitor.index) + ${ADD_PANEL_HEIGHT};|" "${EXTENSION_PATH}/panel.js"
 
 # Prepare stylesheet.css addition
+
+CLASSNAME_VAR=$(cut -d'@' -f1 <<< ${EXTENSION} | sed 's|-||g')
+
 ADD_STYLESHEET=\
 "/*Customized, issue 1819*/
-#dashtopanelScrollview .app-well-app:hover .dtp-container,
-#dashtopanelScrollview .app-well-app:focus .dtp-container,
-#dashtopanelScrollview .app-well-app .dtp-container > StWidget {
+#${CLASSNAME_VAR}Scrollview .app-well-app:hover .dtp-container,
+#${CLASSNAME_VAR}Scrollview .app-well-app:focus .dtp-container,
+#${CLASSNAME_VAR}Scrollview .app-well-app .dtp-container > StWidget {
   border-radius: ${BORDER_RADIUS}px;
 }
-#dashtopanelScrollview .dash-item-container > StWidget { 
+#${CLASSNAME_VAR}Scrollview .dash-item-container > StWidget { 
   border-top: ${BORDERS}px;
   border-bottom: ${BORDERS}px;
 }
