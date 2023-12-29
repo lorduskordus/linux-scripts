@@ -50,7 +50,8 @@ elif [ -d "${EXTENSION_PATH_SYSTEM}" ]; then
 	# Check for root privileges..
 	if [ "${EUID}" -ne 0 ]; then
 		#.. we DON'T have them.
-		echo -e "    ▪ Need ${FAIL_CLR}higher privileges${RESET_CLR} to proceed.\n      ▪ Please run the script again with sudo."
+		echo -e "    ▪ Need ${FAIL_CLR}higher privileges${RESET_CLR} to proceed."
+		echo "      ▪ Please run the script again with sudo."
 		exit 1
 	else
 		#.. we have them, check for immutable distros..
@@ -59,7 +60,8 @@ elif [ -d "${EXTENSION_PATH_SYSTEM}" ]; then
 			rm -f "${EXTENSION_PATH}/ro_test"
 		else
 			#.. running immutable.
-			echo -e "    ▪ Detected an ${FAIL_CLR}immutable distribution${RESET_CLR}.\n      ▪ Please install the extension locally and run the script without sudo."
+			echo -e "    ▪ Detected an ${FAIL_CLR}immutable distribution${RESET_CLR}."
+			echo "      ▪ Please install the extension locally and run the script without sudo."
 			exit 1
 		fi
 	fi
