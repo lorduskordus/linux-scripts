@@ -5,7 +5,8 @@
 # Setup variables
 THEME_NAME="gnome-shell-custom"
 THEME_PATH="$HOME/.local/share/themes/$THEME_NAME"
-ACCENT_COLOR=$(awk '/@define-color accent_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+ACCENT_FILE="${HOME}/.config/gtk-4.0/gtk.css"
+ACCENT_COLOR=$(awk '/@define-color accent_color/{ print substr( $3, 1, length($3)-1 ) }' "${ACCENT_FILE}" 2> /dev/null)
 SHELL_VERSION="$(gnome-shell --version | awk '{print $3}')"
 WORKDIR="/tmp/gnome-shell"
 
@@ -17,7 +18,7 @@ echo -e "${TITLE_CLR}Creating a gnome-shell theme with a custom accent..${RESET}
 
 # Do we have accent color ?
 if [ -z "$ACCENT_COLOR" ]; then
-	echo "Accent color in '$HOME/.config/gtk-4.0/gtk.css' is missing. Set a custom accent color first."
+	echo "Accent color in '${ACCENT_FILE}' is missing. Set a custom accent color first."
 	exit 1
 fi
 
