@@ -3,7 +3,7 @@
 # Sets up udev rules and a group for android-tools.
 
 get_newest_rules(){
-	sudo wget -O /etc/udev/rules.d/51-android.rules https://raw.githubusercontent.com/M0Rf30/android-udev-rules/main/51-android.rules
+	sudo wget -O /etc/udev/rules.d/51-android.rules "https://raw.githubusercontent.com/M0Rf30/android-udev-rules/main/51-android.rules"
 	sudo chmod a+r /etc/udev/rules.d/51-android.rules
 }
 
