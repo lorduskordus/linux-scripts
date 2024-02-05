@@ -11,8 +11,8 @@
 # You can alter the 'SETUP VARIABLES' as you like, you shouldn't touch the rest.
 
 # ------------------- SETUP VARIABLES --------------------------------------------------#
-ADD_PANEL_HEIGHT=6 # Should be exactly twice of BORDERS
-BORDERS=3
+ADD_PANEL_HEIGHT=8 # Should be exactly twice of BORDERS
+BORDERS=4
 BORDER_RADIUS=10
 # ------------------- SETUP VARIABLES --------------------------------------------------#
 
