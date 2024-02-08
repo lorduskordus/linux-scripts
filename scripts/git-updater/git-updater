@@ -1,0 +1,88 @@
+#!/bin/bash
+
+# Checks for updated releases on GitHub and downloads the latest release.
+# --------------------------------------------------------------------------- #
+# Made for personal use !
+# This is supposed to cooperate with other scripts and can be used to
+# update stuff, that would otherwise have to be updated manually.
+# ----------------------- #
+# Prefers versioned releases, but clones the repo if no release is available.
+# The date of the last commit is then used as 'version' in the version file.
+# --------------------------------------------------------------------------- #
+
+URL="$1"
+
+if [ -z ${URL} ]; then
+	echo "No URL provided, cannot continue."
+	exit 1
+fi
+
+# Repository info
+OWNER=$(awk -F/ '{print $4}' <<< "${URL}")
+REPO_NAME=$(awk -F/ '{sub(/\.git$/, "", $5); print $5}' <<< "${URL}")
+
+# Releases
+JSON_RELEASES=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO_NAME}/releases/latest")
+# No releases, git cloning
+DEFAULT_BRANCH=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO_NAME}" | jq -r '.default_branch')
+JSON_COMMITS=$(curl -s "https://api.github.com/repos/${OWNER}/${REPO_NAME}/commits/${DEFAULT_BRANCH}")
+
+# Version control
+VERSIONS_FOLDER="${HOME}/.local/share/git-updater/version_files"
+CURRENT_VERSION=$(cat "${VERSIONS_FOLDER}/${REPO_NAME}" 2> /dev/null)
+
+if [ -z ${CURRENT_VERSION} ]; then
+   CURRENT_VERSION="Unknown"
+fi
+
+# Get latest release & commit
+LATEST_RELEASE=$(jq -r .tag_name <<< "${JSON_RELEASES}")
+LATEST_COMMIT=$(jq -r '.commit.author.date' <<< "${JSON_COMMITS}" | sed 's|T.*||')
+
+# Setup variables based on what's available
+if [ "${LATEST_RELEASE}" != "null" ]; then
+   LATEST_VERSION=${LATEST_RELEASE}
+   DOWNLOAD_URL=$(jq -r .tarball_url <<< "${JSON_RELEASES}")  
+elif [ "${LATEST_COMMIT}" != "null" ]; then
+   LATEST_VERSION=${LATEST_COMMIT}
+else
+   echo -e "Latest release and commit are both 'null'.\nThis might indicate we sent too many requests. Try again later."
+   exit 1
+fi
+
+WORKDIR="/tmp"
+
+# Color codes
+TITLE_CLR='\e[35m'
+GREEN_CLR='\e[32m'
+RED_CLR='\e[31m'
+RESET='\e[0m'
+
+# We're up to date.
+if [ "${CURRENT_VERSION}" == "${LATEST_VERSION}" ]; then
+   echo -e "\n▪ ${TITLE_CLR}${REPO_NAME}${RESET}:"
+   echo -e "  ▪ Current version: ${GREEN_CLR}${CURRENT_VERSION}${RESET}"
+   echo -e "  ▪ Up to date, nothing to do here."
+   exit 123
+# Update exists. Download the neccessary files.
+else
+   echo -e "\n▪ ${TITLE_CLR}${REPO_NAME}${RESET}:"
+   echo -e "  ▪ Current version: ${RED_CLR}${CURRENT_VERSION}${RESET}"
+   echo -e "  ▪ Newer version exists, updating to ${GREEN_CLR}${LATEST_VERSION}${RESET}.."
+
+   # We have latest release
+   if [ -n "${DOWNLOAD_URL}" ]; then
+      wget -qP ${WORKDIR} "${DOWNLOAD_URL}"
+      tar -xf ${WORKDIR}/${LATEST_VERSION} -C ${WORKDIR}
+      mv ${WORKDIR}/${OWNER}-${REPO_NAME}-* ${WORKDIR}/${REPO_NAME}
+      rm -f ${WORKDIR}/${LATEST_VERSION}
+   # We don't have a release
+   else
+      git clone ${URL} ${WORKDIR}/${REPO_NAME} &> /dev/null
+   fi
+
+   mkdir -p "${VERSIONS_FOLDER}"
+   echo "${LATEST_VERSION}" > "${VERSIONS_FOLDER}/${REPO_NAME}"
+
+   echo -e "  ▪ Done."
+fi
