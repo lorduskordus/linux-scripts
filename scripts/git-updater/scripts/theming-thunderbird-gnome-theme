@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Downloads thunderbird-gnome-theme from GitHub & uses custom accent if it's set.
+# Deletes previously installed theme, so it can be used for upgrades.
+
+# ----------------- GIT UPDATER ------------------------------------------------------------------ #
+
+URL="https://github.com/rafaelmardojai/thunderbird-gnome-theme"
+
+# ------------------------------------------------------------------------------------------------ #
+NAME="$(awk -F/ '{sub(/\.git$/, "", $5); print $5}' <<< "${URL}")"
+WORKDIR="/tmp/${NAME}"
+UPDATER="${HOME}/.local/share/git-updater/git-updater"
+
+# Cleanup WORKDIR just in case.
+rm -rf "$WORKDIR"
+
+# Download the theme OR check for updates.
+if [ "$1" == "--update-mode" ]; then
+	# Do we have git-updater ?
+	if ! type ${UPDATER} &> /dev/null; then
+		echo "Cannot check for updates as git-updater doesn't exist in the git-updater folder."
+		exit 1
+	fi
+	# We have it, run it.
+	bash ${UPDATER} ${URL}
+	# All up to date, exit.
+	if [ $? -eq 123 ]; then
+		exit 0
+	fi
+	# Completely suppress the output
+	exec &> /dev/null
+else
+	# Normal mode, clone the theme.
+	echo -e "\e[1mInstalling ${NAME} with a custom accent..\e[0m\n"
+	git clone ${URL} "${WORKDIR}"
+fi
+# ------------------------------------------------------------------------------------------------ #
+
+ACCENT_COLOR=$(awk '/@define-color accent_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+ACCENT_BG_COLOR=$(awk '/@define-color accent_bg_color/{ print substr( $3, 1, length($3)-1 ) }' $HOME/.config/gtk-4.0/gtk.css 2> /dev/null)
+
+# Set custom accent color if it's set in gtk.css.
+if [ -n "$ACCENT_COLOR" ] && [ -n "$ACCENT_BG_COLOR" ]; then
+	# LIGHT theme override.
+	sed -i "s|--gnome-accent-bg:.*|--gnome-accent-bg: $ACCENT_BG_COLOR;|" "$WORKDIR/theme/colors/light.css"
+	sed -i "s|--gnome-accent:.*|--gnome-accent: $ACCENT_COLOR;|" "$WORKDIR/theme/colors/light.css"
+
+	# DARK theme override.
+	sed -i "s|--gnome-accent-bg:.*|--gnome-accent-bg: $ACCENT_BG_COLOR;|" "$WORKDIR/theme/colors/dark.css"
+	sed -i "s|--gnome-accent:.*|--gnome-accent: $ACCENT_COLOR;|" "$WORKDIR/theme/colors/dark.css"
+fi
+
+# Install.
+
+# All thunderbird installation paths.
+thunderbirdInstallationPaths=(
+    ~/.thunderbird
+    ~/.var/app/org.mozilla.Thunderbird/.thunderbird
+    ~/snap/thunderbird/common/.thunderbird
+)
+
+foldersFoundCount=0
+
+# For every installation path..
+for folder in "${thunderbirdInstallationPaths[@]}"; do
+	# ..if the path exists..
+    if [ -d "$folder" ]; then
+		echo Thunderbird installation folder found.
+		foldersFoundCount+=1
+
+		# Delete old theming.
+		find "$folder" -mindepth 2 -maxdepth 2 -type l -name 'user.js' -delete
+		find "$folder" -mindepth 2 -maxdepth 2 -type d -name 'chrome' -exec rm -rf {} +
+
+		# Install the theme.
+		eval "$WORKDIR/scripts/install.sh" -f "$folder"
+    fi
+done
+
+# If no installation path exists.
+if [ $foldersFoundCount = 0 ]; then
+    echo No Thunderbird folder found.
+fi
+
+# Cleanup.
+rm -rf "$WORKDIR"
