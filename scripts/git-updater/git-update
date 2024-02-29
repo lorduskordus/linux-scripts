@@ -1,0 +1,13 @@
+#!/usr/bin/bash
+
+SCRIPTS_FOLDER="${HOME}/.local/share/git-updater/scripts"
+
+# Color codes
+TITLE_CLR='\e[1m'
+RESET='\e[0m'
+
+echo -e "${TITLE_CLR}Checking for updates..${RESET}"
+
+for script in "${SCRIPTS_FOLDER}"/*; do
+	bash ${script} --update-mode
+done
