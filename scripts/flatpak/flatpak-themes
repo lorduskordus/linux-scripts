@@ -2,8 +2,17 @@
 
 # Allows Flatpak to access folders related to theming.
 
-sudo flatpak override \
---filesystem="xdg-config/gtk-3.0:ro" \
---filesystem="xdg-config/gtk-4.0:ro" \
---filesystem="xdg-data/icons:ro" \
---filesystem="xdg-data/themes:ro"
+override_flatpak_perms () {
+    if [ "$1" == "--system" ]; then
+        PREFIX="sudo "
+    fi
+
+    ${PREFIX}flatpak "$1" override \
+    --filesystem="xdg-config/gtk-3.0:ro" \
+    --filesystem="xdg-config/gtk-4.0:ro" \
+    --filesystem="xdg-data/icons:ro" \
+    --filesystem="xdg-data/themes:ro"
+}
+
+override_flatpak_perms --user
+override_flatpak_perms --system
