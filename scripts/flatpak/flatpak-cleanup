@@ -1,7 +1,15 @@
 #!/bin/bash
 
+# --------------------------------------- #
 # Removes uninstalled Flatpak app's data,
 # unused runtimes & old NVIDIA runtimes.
+# --------------------------------------- #
+
+# --------------------------------------- #
+# Test priviliges:
+#    + Removing unused system runtimes
+#    + Removing NVIDIA runtimes
+# --------------------------------------- #
 
 # Color codes
 ACCENT_CLR='\e[32m'
@@ -19,9 +27,9 @@ remove_data(){
 remove_runtimes(){
     echo -e "\n${TITLE_CLR}▪ REMOVE RUNTIMES${RESET}"
 
-    PINNED=$(flatpak --system pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
-    USER_PINNED=$(flatpak --user pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
+    # -- USER -- #
 
+    USER_PINNED=$(flatpak --user pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
     echo -e "${TITLE_CLR}Pinned (user):${RESET}"
     if [ -n "${USER_PINNED}" ]; then
         echo "Removing user pins.."
@@ -38,6 +46,9 @@ remove_runtimes(){
     echo -e "${TITLE_CLR}Unused (user):${RESET}"
     flatpak --user remove --unused
 
+    # -- SYSTEM -- #
+
+    PINNED=$(flatpak --system pin | awk '{sub(/^[ \t]+/, "");} /runtime/')
     echo -e "${TITLE_CLR}Pinned (system):${RESET}"
     if [ -n "${PINNED}" ]; then
         echo "Removing system pins.."
@@ -51,7 +62,7 @@ remove_runtimes(){
         echo "No system pins."
     fi
 
-    # -- !! Was problematic before !! -- #
+    # -- THIS NEEDS FURTHER TESTING -- #
     # pkexec
     echo -e "${TITLE_CLR}Unused (system):${RESET}"
     flatpak --system remove --unused
