@@ -4,7 +4,7 @@
 
 override_flatpak_perms () {
     if [ "$1" == "--system" ]; then
-        PREFIX="sudo "
+        PREFIX="pkexec "
     fi
 
     ${PREFIX}flatpak "$1" override \
