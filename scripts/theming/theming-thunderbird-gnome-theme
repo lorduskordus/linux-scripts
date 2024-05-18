@@ -38,6 +38,7 @@ thunderbirdInstallationPaths=(
     ~/.thunderbird
     ~/.var/app/org.mozilla.Thunderbird/.thunderbird
     ~/snap/thunderbird/common/.thunderbird
+    ~/.var/app/eu.betterbird.Betterbird/.thunderbird
 )
 
 foldersFoundCount=0
