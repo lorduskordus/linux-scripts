@@ -1,0 +1,84 @@
+#!/bin/bash
+
+CONTAINER_NAME="svp-arch"
+CONTAINER_IMAGE="ghcr.io/ublue-os/arch-distrobox:latest"
+MPV_CONF_PATH="${HOME}/.config/mpv"
+MPV_CONF_FILE="${MPV_CONF_PATH}/mpv.conf"
+SVP_AUR_PKG_NAME="svp-bin"
+EXPORT_APPS=(mpv 
+             SVPManager)
+
+# Check for distrobox
+if ! type distrobox &> /dev/null; then
+    echo "Distrobox is not installed."
+    echo -e "Check out 'https://github.com/89luca89/distrobox' if you need information.\n"
+    read -p "If you want to install it now (in ~/.local/bin), type 'yes': " USER_INPUT
+    if [ "${USER_INPUT}" == "yes" ]; then
+        echo -e "\nAll right. Installing.\n"
+        if ! curl -s https://raw.githubusercontent.com/89luca89/distrobox/main/install | sh -s -- --prefix ~/.local; then
+            echo "There was an error installing Distrobox."
+            exit 1
+        fi
+    else
+        echo -e "\nCanceled."
+        exit 1
+    fi
+fi
+
+# Check if container exists
+if distrobox list | grep -qw ${CONTAINER_NAME}; then
+    echo "Container '${CONTAINER_NAME}' already exists."
+    echo "If there was an error, you can remove it using:"
+    echo "distrobox rm -f ${CONTAINER_NAME}"
+    exit 1
+fi
+
+# Check for NVIDIA
+if cat /proc/driver/nvidia/version &> /dev/null; then
+    NVIDIA="--nvidia"
+fi
+
+# Create the container & install MPV
+if ! distrobox create --name ${CONTAINER_NAME} --image ${CONTAINER_IMAGE} --no-entry ${NVIDIA} --pre-init-hooks "sudo pacman -Syu --noconfirm;" --additional-packages "mpv"; then
+    echo "There was an error creating the container."
+    exit 1
+fi
+
+# Install SVP4
+if ! distrobox enter --name ${CONTAINER_NAME} -- paru -S aur/${SVP_AUR_PKG_NAME} --noconfirm; then
+    echo "Failed to install SVP4."
+    exit 1
+fi
+
+# Export the apps
+for app in "${EXPORT_APPS[@]}"; do
+    if ! distrobox enter --name ${CONTAINER_NAME} -- distrobox-export --app ${app}; then
+        echo "Failed to export apps."
+        exit 1
+    fi
+done
+
+# Configure MPV
+if [ ! -f "${MPV_CONF_FILE}" ]; then
+mkdir -p "${MPV_CONF_PATH}"
+cat << EOF > "${MPV_CONF_FILE}"
+profile=svp
+hwdec=auto-copy
+hwdec-codecs=all
+
+[svp]
+input-ipc-server=/tmp/mpvsocket     # Receives input from SVP
+hr-seek-framedrop=no                # Fixes audio desync
+resume-playback=no                  # Not compatible with SVP
+
+# Can fix stuttering in some cases, in other cases probably causes it. Try it if you experience stuttering.
+#opengl-early-flush=yes
+EOF
+fi
+
+if [ $? -ne 0 ]; then
+    echo "Failed to configure MPV."
+    exit 1
+fi
+
+echo -e "\nDone\nYou should now be able to play interpolated videos using the newly created MPV & SVP4 shortcuts in the menu."
