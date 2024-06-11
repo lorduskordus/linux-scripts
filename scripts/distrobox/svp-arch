@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONTAINER_NAME="svp-arch"
+CONTAINER_NAME="svp"
 CONTAINER_IMAGE="ghcr.io/ublue-os/arch-distrobox:latest"
 MPV_CONF_PATH="${HOME}/.config/mpv"
 MPV_CONF_FILE="${MPV_CONF_PATH}/mpv.conf"
